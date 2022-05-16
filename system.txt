@@ -1,0 +1,26 @@
+4.772e-3
+2.288e-2
+6.69e-7
+1836.0
+13
+2.28e-3
+1.0
+300.0
+0.0 0.2366
+-500.0 500.0
+false
+false
+
+#aVal
+#bVal
+#Delta
+#m (system mass equals bath mass)
+#number of bath modes
+#omega c
+#eta/(m * omega c)
+#temp
+#epsilon range
+#time range for integrations
+#Integerate correlation funciton? false writes out c(t)
+#Calculate rate as function of epsilon? false write out k at first value of epsilon
+

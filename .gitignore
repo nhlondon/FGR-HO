@@ -1,0 +1,6 @@
+*.o
+corf.xvg
+oldCorf
+test
+test.cpp
+test.dSYM

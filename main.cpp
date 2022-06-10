@@ -13,7 +13,7 @@ using namespace std;
 using namespace arma;
 
 int main()
-  {
+{
 	wall_clock timer;
 	timer.tic();
 	
@@ -36,7 +36,6 @@ int main()
 	x = cx_double(1.0);
 	//cout << x << endl;
 	aPrime = getAPrime(sys);
-	atest = getAtest(sys);
 
 //	cout << aPrime << endl << endl;	
 	vec eigVal,zVec(sys.n,fill::zeros);
@@ -55,7 +54,7 @@ int main()
 	{
 		eigVal(i) = sqrt(eigVal(i));
 	}
-	cx_vec eigValsA((sqrt(2.0/sys.m)) * eigVal,zVec);
+	cx_vec eigValsA((sqrt(1.0/sys.m)) * eigVal,zVec); //changed from root(2/m)
 	aMat1 = diagmat(eigValsA);
 //	aMat = join_cols(join_rows(aMat1, tauZ),join_rows(tauZ,aMat1));
 	aMat = join_cols(join_rows(tauZ, aMat1),join_rows(aMat1,tauZ));
@@ -70,18 +69,29 @@ int main()
 */
 //	cout << trace(expmat_sym(-sys.beta * real(aPrime) / 2.0)) << endl;
 //	cout << real(aMat) << endl << endl;;
-//	cout << real(eigVecsA * aPrime / cx_double(2.0,0) * strans(eigVecsA)) << endl;
-//	cout << real(eigVecsA * strans(eigVecsA)) << endl;
+//	cout << real(trans(eigVecsA) * aPrime  * eigVecsA) << endl;
+//	cout << real(eigVecsA * trans(eigVecsA)) << endl;
 
-	cx_rowvec kPrime, kVec1, kVec;
+	cx_rowvec kPrimeG, kPrimeE, kVec1E, kVec1G, kVecG, kVecE;
 	cx_mat bPrime, bMat;
 
 	bMat = getBPrime(sys, aMat, sys.epsilon(0));
-	kPrime = getKPrime(sys);
+	kPrimeG = getKPrime(sys, 1);
+	kPrimeE = getKPrime(sys, 2);
 
 //	bMat = strans(eigVecsA) * (bPrime / cx_double(2.0,0.0)) * eigVecsA;
-	kVec1 = cx_double(1.0/sqrt(2.0),0.0)* kPrime * eigVecsA;
-	kVec = join_rows(kVec1,kVec1);
+	kVec1G = cx_double(1.0/sqrt(2.0),0.0)* kPrimeG * eigVecsA;
+	for( int j = 0; j < sys.n; j++)
+	{ 
+		kVec1G(j) = kVec1G(j)/ sqrt(sys.m * eigVal(j));
+	}
+	kVecG = join_rows(kVec1G,kVec1G);
+	kVec1E = cx_double(1.0/sqrt(2.0),0.0)* kPrimeE * eigVecsA;
+	for( int j = 0; j < sys.n; j++)
+	{ 
+		kVec1E(j) = kVec1E(j)/ sqrt(sys.m * eigVal(j));
+	}
+	kVecE = join_rows(kVec1E,kVec1E);
 
 	//cout << bMat << endl << endl;
 	//cout << kPrime << endl << endl;
@@ -89,8 +99,9 @@ int main()
 
 
 	cx_mat sG, sE;
-	cx_vec lambdaE;
-	int nTime = 2000;
+	cx_vec lambdaG, lambdaE, lambda;
+	cx_double nu;
+	int nTime = 4000;
 	double tstep = (sys.time[1] - sys.time[0])/ nTime;
 	vec time(nTime+1);
 	cx_vec cTau(nTime+1);
@@ -113,14 +124,14 @@ int main()
 	//	sE = -cx_double(0.0,1.0) * (cx_double(time,0.0) - cx_double(sys.beta / 2.0,0.0)) * bMat;
 	//	lambdaE = strans((-cx_double(0.0,1.0) * (cx_double(time,0.0) - cx_double(0.0,1.0)*cx_double(sys.beta / 2.0,0.0)) 
 	//		* strans(kVec)) * inv(tauMat));
-			double tauVal = 0.0;
-			sG = cx_double(-(sys.beta-tauVal), time(i)) * aMat;
-			sE = cx_double(-tauVal, -time(i)) * bMat;
-			lambdaE = trans( cx_double(-tauVal, -time(i)) * kVec * inv(tauMat));
-			cx_double constants = cx_double(-tauVal, -time(i)) * 
-				cx_double((sys.bVal * sys.bVal)/( sys.m * sys.omegas * sys.omegas) - epsilon);
-		
-		if(time(i) != 0.0){	
+		double tauVal = sys.beta/2.0;
+		sG = cx_double(-(sys.beta-tauVal), time(i)) * aMat;
+		sE = cx_double(-tauVal, -time(i)) * bMat;
+		lambdaG = strans( cx_double(-(sys.beta - tauVal), time(i)) * kVecG * inv(tauMat));
+		lambdaE = strans( cx_double(-tauVal, -time(i)) * kVecE * inv(tauMat));
+		cx_double constants = cx_double(-tauVal, -time(i)) * 
+			cx_double( -epsilon);
+
 		//cout << aMat << endl << endl;
 		//cout << bMat << endl << endl;
 		cx_mat tauSG, tauSE, tauS, expTauS, sMat;
@@ -149,31 +160,42 @@ int main()
 	//	cout << mSE << endl;
 		invMSG = inv(mSG);
 		invMSE = inv(mSE);
-		
-		expTauS = mSG * expmat(dSG) * invMSG * mSE * expmat(dSE) * invMSE;
-		tauS = logmat(expTauS);
-		eig_gen(eigValS, mS, tauS);
-		invMS = inv(mS);
-		sMat = inv(tauMat) * tauS;
-		dS = diagmat(eigValS);
+	
+//		if(time(i) != 0.0)
+//		{	
+			expTauS = mSG * expmat(dSG) * invMSG * mSE * expmat(dSE) * invMSE;// stopped in checking
+			
+			tauS = logmat(expTauS);
+			eig_gen(eigValS, mS, tauS);
+			invMS = inv(mS);
+			sMat = inv(tauMat) * tauS;
+			dS = diagmat(eigValS);
+			
+			getDiagFuncs(dSG, &chiSG, &chiDagSG, &phiSG, &phiDagSG, &psiSG, sys);
+			getDiagFuncs(dSE, &chiSE, &chiDagSE, &phiSE, &phiDagSE, &psiSE, sys);
+			getDiagFuncs(dS, &chiS, &chiDagS, &phiS, &phiDagS, &psiS, sys);
 
-		//cout <<expmat(dSE)<< endl;
+			cx_mat nuMat;
 
-		getDiagFuncs(dSG, &chiSG, &chiDagSG, &phiSG, &phiDagSG, &psiSG, sys);
-		getDiagFuncs(dSE, &chiSE, &chiDagSE, &phiSE, &phiDagSE, &psiSE, sys);
-		getDiagFuncs(dS, &chiS, &chiDagS, &phiS, &phiDagS, &psiS, sys);
+			lambda = mS * chiDagS * invMS * mSG * chiSG * invMSG * lambdaG +
+				mS * phiDagS * invMS * mSE * phiSE * invMSE * lambdaE;		
+			nuMat = cx_double(0.5,0.0) * strans(lambdaG) * tauMat * mSG * psiSG * invMSG * lambdaG + 
+				cx_double(0.5,0.0) * strans(lambdaE) * tauMat * mSE * psiSE * invMSE * lambdaE - 
+				(cx_double(0.5,0.0) * strans(lambda) * tauMat * mS * psiS * invMS * lambda) +
+				(cx_double(0.5,0.0) * strans(lambdaG) * tauMat * mSG * chiSG * invMSG * mSE * chiSE *
+					invMSE * lambdaE);
 
-		cx_vec lambda;
-		cx_double nu, nu2;
-		cx_mat nuMat;
+			nu = nuMat(0,0);
+/*		}
+		else 
+		{
+			expTauS = expmat(tauSG);
+			tauS = logmat(expTauS);
 
-//		lambda = mS * chiDagS * invMS * mSE * chiSE * invMSE * lambdaE;
-		lambda = mS * phiDagS * invMS * mSE * phiSE * invMSE * lambdaE;		
-		nuMat = cx_double(0.5,0.0) * trans(lambdaE) * tauMat * mSE * psiSE * invMSE * lambdaE - 
-			(cx_double(0.5,0.0) * trans(lambda) * tauMat * mS * psiS * invMS * lambda);
-
-		nu = nuMat(0,0);
-
+			lambda = lambdaG;
+			nu = cx_double(0.0);
+		}
+	*/	
 	//	cx_double cTau;
 		cx_mat identity(2* (sys.n), 2*(sys.n), fill::eye);
 
@@ -182,16 +204,15 @@ int main()
 		//cout << expTauS << endl;
 		detVal = det(expTauS - identity);
 	//	detVal = detMat(0,0);
-		expMat = trans(lambda) * tauMat * inv(tauS) * lambda;
+		expMat = strans(lambda) * tauMat * inv(tauS) * lambda;
 		expVal = expMat(0,0);
 		cTau(i) = (cx_double(1.0,0.0) / sqrt( cx_double(pow(-1.0, sys.n),0.0) * detVal)) * 
 	//	cTau(i) =  sqrt( cx_double(pow(-1.0, sys.n),0.0) * detVal) * 
 			exp(nu - cx_double(0.5,0.0)*expVal)
 			* exp(constants);
 		cTauReal(i) = cTau(i).real();
-		}
 
-		else{
+		/*else{
 		cx_mat tauSG, tauSE, tauS, expTauS, sMat;
 		cx_mat identity(2* (sys.n), 2*(sys.n), fill::eye);
 
@@ -202,29 +223,34 @@ int main()
 		detVal = det(expTauS - identity);
 		cTau(i) = (cx_double(1.0,0.0) / sqrt( cx_double(pow(-1.0, sys.n),0.0) * detVal)); 
 		cTauReal(i) = cTau(i).real();
-		}
-		fp << time(i) << " " << cTau(i) << " " << cTauReal(i) << endl;
+		}*/
+		fp << time(i) << " " << cTau(i) << " " << cTauReal(i) << " " << cTau(i).imag() << endl;
 		//cout << detVal << endl;
 		//cout << expMat << endl;
 		//cout << nuMat << endl;
 	//	cout << cTau << endl << endl;;
-}
+	}
+	
 	fp.close();
 	cx_mat identity(2* (sys.n), 2*(sys.n), fill::eye);
 	sG = cx_double(-sys.beta, 0.0) * aMat;
+		lambdaG = strans( cx_double(-(sys.beta), 0.0) * kVecG * inv(tauMat));
 	cx_mat tauSG = tauMat * sG;
 	cx_double detVal = det(expmat(tauSG) - identity);
 	cout << detVal << endl;
-	z0 = (cx_double(1.0,0.0) / sqrt( cx_double(pow(-1.0, sys.n),0.0) * detVal)).real(); 
+	cx_mat	expMat = strans(lambdaG) * tauMat * inv(tauSG) * lambdaG;
+	cx_double	expVal = expMat(0,0);
+	z0 = (cx_double(1.0,0.0) / sqrt( cx_double(pow(-1.0, sys.n),0.0) * detVal) * 
+			exp(-cx_double(0.5,0.0)*expVal)).real();
 	cout << z0 << endl;
 	double integral, rate, logRate;
 	integral = trapezoidInt(time, cTauReal, nTime);
 	rate = sys.delta * sys.delta * integral / z0;
 	logRate = log10(rate);
 	
-	cout << integral << " " << rate << " " << logRate << endl;
+	cout << integral  << " " << integral/z0 << " " << rate << " " << logRate << endl;
   double n = timer.toc();
 	cout << "Time taken: " << timer.toc() <<"s" << endl;
 	
-return 0;
-  }
+	return 0;
+}

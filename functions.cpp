@@ -83,20 +83,6 @@ mat getAPrime(System sys)
 	hes(0,0) += sys.m * sys.omegas * sys.omegas;
 	return hes;
 }
-mat getAtest(System sys)
-{
-	//Generate Hessian Matrix
-	mat hes(sys.n,sys.n,fill::zeros);
-	for(int j=0; j < sys.f; j++)
-	{
-		hes(0,0) += (-sys.cj[j] * -sys.cj[j])/(2.0 * sys.m * sys.omegaj[j] * sys.omegaj[j]);
-		hes(0,j+1) = -sys.cj[j]/2.0;
-		hes(j+1,0) = hes(0,j+1);
-		hes(j+1,j+1) = sys.m * sys.omegaj[j] * sys.omegaj[j] / 2.0 ;
-	}
-	hes(0,0) += sys.m * sys.omegas * sys.omegas / 2.0;
-	return hes;
-}
 cx_mat getBPrime(System sys, cx_mat aPrime, double epsilon)
 {
 //	cx_mat identity(2*sys.n,2*sys.n,fill::eye);
@@ -115,12 +101,14 @@ cx_mat getBPrime(System sys, cx_mat aPrime, double epsilon)
 	return bPrime;
 }
 
-cx_rowvec getKPrime(System sys)
+cx_rowvec getKPrime(System sys, int state)
 {
 	cx_rowvec kPrime(sys.n);
 	kPrime.zeros();
-	kPrime(0) = cx_double(- (2.0 * sys.bVal) / sqrt(sys.m * sys.omegas ));
-//	kPrime(sys.n) = kPrime(0);
+	//if (state == 1) kPrime(0) = cx_double(sys.bVal / sqrt(sys.m * sys.omegas));
+	//else kPrime(0) = cx_double(-sys.bVal / sqrt(sys.m * sys.omegas));
+	if (state == 1) kPrime(0) = cx_double(sys.bVal);
+	else kPrime(0) = cx_double(-sys.bVal );
 
 	return kPrime; 
 }

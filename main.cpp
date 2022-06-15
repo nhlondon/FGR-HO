@@ -83,13 +83,13 @@ int main()
 	kVec1G = cx_double(1.0/sqrt(2.0),0.0)* kPrimeG * eigVecsA;
 	for( int j = 0; j < sys.n; j++)
 	{ 
-		kVec1G(j) = kVec1G(j)/ sqrt(sys.m * eigVal(j));
+		kVec1G(j) = kVec1G(j)/ sqrt(sys.m * eigValsA(j));
 	}
 	kVecG = join_rows(kVec1G,kVec1G);
 	kVec1E = cx_double(1.0/sqrt(2.0),0.0)* kPrimeE * eigVecsA;
 	for( int j = 0; j < sys.n; j++)
 	{ 
-		kVec1E(j) = kVec1E(j)/ sqrt(sys.m * eigVal(j));
+		kVec1E(j) = kVec1E(j)/ sqrt(sys.m * eigValsA(j));
 	}
 	kVecE = join_rows(kVec1E,kVec1E);
 
@@ -129,8 +129,9 @@ int main()
 		sE = cx_double(-tauVal, -time(i)) * bMat;
 		lambdaG = strans( cx_double(-(sys.beta - tauVal), time(i)) * kVecG * inv(tauMat));
 		lambdaE = strans( cx_double(-tauVal, -time(i)) * kVecE * inv(tauMat));
-		cx_double constants = cx_double(-tauVal, -time(i)) * 
-			cx_double( -epsilon);
+		//cx_double constants = cx_double(-tauVal, -time(i)) * 
+		cx_double constants = cx_double(-(sys.beta-tauVal), time(i)) * 
+			cx_double( epsilon);
 
 		//cout << aMat << endl << endl;
 		//cout << bMat << endl << endl;
@@ -241,7 +242,7 @@ int main()
 	cx_mat	expMat = strans(lambdaG) * tauMat * inv(tauSG) * lambdaG;
 	cx_double	expVal = expMat(0,0);
 	z0 = (cx_double(1.0,0.0) / sqrt( cx_double(pow(-1.0, sys.n),0.0) * detVal) * 
-			exp(-cx_double(0.5,0.0)*expVal)).real();
+			exp((-sys.beta*epsilon)-cx_double(0.5,0.0)*expVal)).real();
 	cout << z0 << endl;
 	double integral, rate, logRate;
 	integral = trapezoidInt(time, cTauReal, nTime);

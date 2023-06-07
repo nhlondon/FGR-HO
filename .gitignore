@@ -1,5 +1,5 @@
 *.o
-corf.xvg
+*.xvg
 oldCorf
 test
 test.cpp

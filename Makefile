@@ -1,9 +1,9 @@
 #.PHONY all clean
 
-PROG = test
-CC = g++-11
-PATHFLAGS = -I/opt/homebrew/Cellar/armadillo/10.8.2/include
-LIBFLAGS = -L/opt/homebrew/Cellar/armadillo/10.8.2/lib -larmadillo
+PROG = fgr
+CC = g++-13
+PATHFLAGS = -I/opt/homebrew/Cellar/armadillo/12.4.0/include
+LIBFLAGS = -L/opt/homebrew/Cellar/armadillo/12.4.0/lib -larmadillo
 OBJS = main.o functions.o system.o
 $(PROG) : $(OBJS)
 	$(CC) -o $(PROG) $(OBJS) -g3 $(PATHFLAGS) $(LIBFLAGS)

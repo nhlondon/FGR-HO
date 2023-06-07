@@ -118,13 +118,24 @@ int main()
 	if(fp2.fail()) {cout << "Can't open file" << endl; exit(0); }
 
 	int nDriving;
-
-	if (sys.drivingForceSweep) nDriving = 100;
-	else nDriving = 1;
-	vec epsilon(nDriving);
 	double dFStep = (sys.epsilon[1] - sys.epsilon[0])/nDriving;
 
-	for (int j =0; j < nDriving; j++)
+	if (sys.drivingForceSweep)
+	{
+		 nDriving = 50;
+		ofstream fp2;
+		fp2.open("drivingForce.xvg");
+		if(fp2.fail()) {cout << "Can't open file" << endl; exit(0); }
+		dFStep = (sys.epsilon[1] - sys.epsilon[0])/nDriving;
+	}
+	else 
+	{
+		nDriving = 0;
+		dFStep  = 0;
+	}
+	vec epsilon(nDriving+1);
+
+	for (int j =0; j <= nDriving; j++)
 	{
 		epsilon(j) = (j * dFStep) +sys.epsilon[0];
 
@@ -138,7 +149,8 @@ int main()
 			//	sE = -cx_double(0.0,1.0) * (cx_double(time,0.0) - cx_double(sys.beta / 2.0,0.0)) * bMat;
 			//	lambdaE = strans((-cx_double(0.0,1.0) * (cx_double(time,0.0) - cx_double(0.0,1.0)*cx_double(sys.beta / 2.0,0.0)) 
 			//		* strans(kVec)) * inv(tauMat));
-				double tauVal = sys.beta/2.0;
+//				double tauVal = sys.beta/2.0;
+				double tauVal = 0.1;
 				sG = cx_double(-(sys.beta-tauVal), time(i)) * aMat;
 				sE = cx_double(-tauVal, -time(i)) * bMat;
 				lambdaG = strans( cx_double(-(sys.beta - tauVal), time(i)) * kVecG * inv(tauMat));
@@ -252,7 +264,7 @@ int main()
 			lambdaG = strans( cx_double(-(sys.beta), 0.0) * kVecG * inv(tauMat));
 		cx_mat tauSG = tauMat * sG;
 		cx_double detVal = det(expmat(tauSG) - identity);
-		cout << detVal << endl;
+		//cout << detVal << endl;
 		cx_mat	expMat = strans(lambdaG) * tauMat * inv(tauSG) * lambdaG;
 		cx_double	expVal = expMat(0,0);
 		z0 = (cx_double(1.0,0.0) / sqrt( cx_double(pow(-1.0, sys.n),0.0) * detVal) * 
@@ -263,7 +275,8 @@ int main()
 		rate = sys.delta * sys.delta * integral / z0;
 		logRate = log10(rate);
 		
-		cout << integral  << " " << integral/z0 << " " << rate << " " << logRate << endl;
+		cout << epsilon(j) << endl;
+		cout << integral  << " " << integral/z0 << " " << rate << " " << logRate << endl << endl;
 		fp2 << epsilon(j) << " " << rate << " " << logRate << endl;
 	}
 

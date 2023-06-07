@@ -1,0 +1,28 @@
+Fermi's Golden Rule Rate for 2-level HO system
+
+Last Update: 06/07/23
+Nathan London
+
+To compile code:
+	Requires the armadillo C++ linear algebra package
+		https://arma.sourceforge.net
+	Can easily isntalled using homebrew on Mac
+		brew install armadillo
+	Include and Lib paths needs be updated in MakeFile to reflect path on your system
+
+	On Mac, compiling also requires using a gcc compiler installed with homebrew
+		brew install gcc
+	g++ version needs to updated in (CC) line to reflect your version
+
+To run code:
+	The only file to modify to run code is system.txt
+		All inputs are labeled in the file
+
+	Run code with ./fgr
+
+	Code will generate 2 files:
+		correlation.xvg
+			C^{tau}(t) - columns 1 and 3 give the time and real value of the correlation function
+
+		drivingForce.xvg
+			epsilon, k, log_10(k)

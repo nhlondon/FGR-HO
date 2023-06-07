@@ -2,5 +2,6 @@
 *.xvg
 oldCorf
 test
+fgr
 test.cpp
 test.dSYM

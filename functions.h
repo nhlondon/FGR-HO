@@ -10,9 +10,9 @@ vec getOmegaJs(System);
 
 vec getCJs(System);
 
-mat getAPrime(System);
+mat getBPrimeG(System);
 
-cx_mat getBPrime(System, cx_mat, double);
+cx_mat getBPrimeE(System, cx_mat, double);
 
 cx_rowvec getKPrime(System, int);
 

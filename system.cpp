@@ -39,7 +39,6 @@ System::System (string file)
 	eta = etaRed * m * omegac;
 	omegas = sqrt((2 * aVal)/m);
 	beta = 1.0/(3.16681520371153e-6 * temp);
-	//cout << beta << endl;	
 	epsilon = epsTemp;
 	time = timeTemp;
 	n = f + 1;
@@ -50,10 +49,4 @@ System::System (string file)
 	if (dForce == "true") drivingForceSweep = true;
 	else drivingForceSweep = false;
 	ip.close();
-/*
-	cout << aVal << " " << bVal << " " << delta << " " << m << " " << f << " " << omegac << " " 
-		<< eta << " " << temp << " " << beta << " " << boolalpha << integrateC << " " 
-		<< boolalpha << drivingForceSweep << endl;
-	cout << epsilon << endl << endl << time << endl;
-*/
 }

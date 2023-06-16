@@ -20,3 +20,5 @@ void getDiagFuncs(cx_mat, cx_mat*, cx_mat*, cx_mat*, cx_mat*, cx_mat*, System);
 
 double trapezoidInt(vec, vec, int);
 
+double getMarcus(System, double);
+

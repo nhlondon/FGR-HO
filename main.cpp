@@ -112,6 +112,7 @@ int main()
 	}
 	vec epsilon(nDriving+1);
 
+	fp2 << "epsilon  FGR rate  logFGR  Marcus rate   logMarcus" << endl;
 	for (int j =0; j <= nDriving; j++)
 	{
 		epsilon(j) = (j * dFStep) +sys.epsilon[0];
@@ -210,14 +211,17 @@ int main()
 		cout << z0 << endl;
 
 		//Integrate correlation function
-		double integral, rate, logRate;
+		double integral, rate, logRate, marcus, logMarcus;
 		integral = trapezoidInt(time, cTauReal, nTime);
 		rate = sys.delta * sys.delta * integral / z0;
 		logRate = log10(rate);
-		
+		marcus = getMarcus(sys, epsilon(j));
+		logMarcus = log10(marcus);	
+
 		cout << epsilon(j) << endl;
-		cout << integral  << " " << integral/z0 << " " << rate << " " << logRate << endl << endl;
-		fp2 << epsilon(j) << " " << rate << " " << logRate << endl;
+		cout << integral  << " " << integral/z0 << " " << rate << " " << logRate << 
+			" " << marcus << " " << logMarcus << endl << endl;
+		fp2 << epsilon(j) << " " << rate << " " << logRate << " " << marcus << " " << logMarcus << endl;
 	}
 
   double n = timer.toc();

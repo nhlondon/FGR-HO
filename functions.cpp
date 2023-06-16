@@ -90,3 +90,14 @@ double trapezoidInt(vec x,vec func,int numPoints)
 	return integrand;
 }
 
+double getMarcus(System sys, double epsilon)
+{
+	double lambda, marcus;
+
+	lambda = (sys.bVal * sys.bVal) / sys.aVal;
+	marcus = 2.0 * M_PI * sys.delta * sys.delta * sqrt( sys.beta / (4.0 * M_PI * lambda)) *
+		exp(-sys.beta / (4.0 * lambda) * (lambda - epsilon) * (lambda - epsilon));
+
+	return marcus; 
+}
+
